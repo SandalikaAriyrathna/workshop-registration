@@ -133,11 +133,17 @@ class WorkshopWorkflowTest extends TestCase
             ->assertSessionHasErrors('date_to');
     }
 
-    public function test_seeders_are_repeatable_and_provide_admin_and_workshops(): void
+    public function test_seeders_are_repeatable_and_provide_all_roles_and_workshops(): void
     {
         $this->seed(DatabaseSeeder::class);
         $this->seed(DatabaseSeeder::class);
         $this->assertDatabaseHas('users', ['email' => 'admin@workshop.com', 'role' => 'admin']);
+        foreach (['admin' => 'Admin@12345', 'manager' => 'Manager@12345', 'staff' => 'Staff@12345'] as $role => $password) {
+            $user = User::where('email', $role.'@workshop.com')->firstOrFail();
+            $this->assertSame($role, $user->role);
+            $this->assertTrue(\Illuminate\Support\Facades\Hash::check($password, $user->password));
+        }
+        $this->assertDatabaseCount('users', 3);
         $this->assertDatabaseCount('workshops', 3);
     }
 }
