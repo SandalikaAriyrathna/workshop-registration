@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -45,5 +46,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function createdRegistrations()
+    {
+        return $this->hasMany(
+            Registration::class,
+            'registered_by'
+        );
+    }
+
+    public function cancelledRegistrations()
+    {
+        return $this->hasMany(
+            Registration::class,
+            'cancelled_by'
+        );
     }
 }
