@@ -62,21 +62,13 @@ This creates the application tables, Admin, Manager, and Staff accounts, and thr
 
 ### 4. Run the backend and frontend
 
-In your first terminal:
+Start Laravel:
 
 ```sh
 php artisan serve
 ```
 
-In a second terminal, from the same repository root:
-
-```sh
-npm run dev
-```
-
-Keep both terminals running. Open http://127.0.0.1:8000 in your browser; the Laravel server serves the application, and Vite supplies the frontend assets.
-
-Alternatively, run `npm run build` to build the frontend once, then run only `php artisan serve` to use the application without the Vite development server.
+Open http://127.0.0.1:8000 in your browser. Laravel serves both the backend and the Blade frontend using the included built assets. Keep this terminal running; no second server is needed.
 
 ## Seeded login accounts
 
