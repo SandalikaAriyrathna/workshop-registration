@@ -4,7 +4,6 @@
 
 - PHP 8.2 or newer with Laravel's required extensions, including `pdo_mysql`.
 - Composer 2.
-- Node.js 20.19+ or 22.12+ and npm.
 - MySQL with InnoDB (for example, the database server included with XAMPP).
 
 ## Local setup
@@ -15,7 +14,6 @@ Run all commands from the repository root. Start your MySQL server before contin
 
 ```sh
 composer install
-npm install
 php -r "file_exists('.env') || copy('.env.example', '.env');"
 php artisan key:generate
 ```
@@ -68,7 +66,7 @@ Start Laravel:
 php artisan serve
 ```
 
-Open http://127.0.0.1:8000 in your browser. Laravel serves both the backend and the Blade frontend using the included built assets. Keep this terminal running; no second server is needed.
+Open http://127.0.0.1:8000 in your browser and choose **Log in**. Laravel serves both the backend and the Blade frontend using the built CSS and JavaScript included in `public/build`. Keep this terminal running; no second server is needed.
 
 ## Seeded login accounts
 
