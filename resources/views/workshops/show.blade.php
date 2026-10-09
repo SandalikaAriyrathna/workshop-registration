@@ -13,6 +13,14 @@
         </div>
     @endif
 
+    @if ($errors->any())
+        <div role="alert" style="background:#fee2e2; color:#991b1b; padding:12px;">
+            @foreach ($errors->all() as $error)
+                <p>{{ $error }}</p>
+            @endforeach
+        </div>
+    @endif
+
     @if (session('success'))
         <div
             style="background:#dcfce7; color:#166534;

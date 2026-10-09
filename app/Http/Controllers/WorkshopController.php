@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Workshop;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class WorkshopController extends Controller
 {
@@ -13,6 +15,12 @@ class WorkshopController extends Controller
      */
     public function index(Request $request)
     {
+        $request->validate([
+            'date_from' => 'nullable|date_format:Y-m-d',
+            'date_to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('date_from') ? ['after_or_equal:date_from'] : [])],
+            'status' => 'nullable|in:scheduled,cancelled,completed',
+            'available_only' => 'nullable|boolean',
+        ]);
         $query = Workshop::query()
             ->withCount('activeRegistrations');
 
@@ -143,7 +151,15 @@ class WorkshopController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $workshop->update($validated);
+        DB::transaction(function () use ($workshop, $validated) {
+            $lockedWorkshop = Workshop::lockForCapacity($workshop->id);
+            if ($validated['capacity'] < $lockedWorkshop->activeRegistrations()->count()) {
+                throw ValidationException::withMessages([
+                    'capacity' => 'Capacity cannot be lower than the number of active registrations.',
+                ]);
+            }
+            $lockedWorkshop->update($validated);
+        }, 3);
 
         return redirect()
             ->route('workshops.index')

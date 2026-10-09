@@ -141,6 +141,13 @@
 
 
                 <!-- Workshop Filters -->
+                @if ($errors->any())
+                    <div role="alert" class="alert alert-danger m-3">
+                        @foreach ($errors->all() as $error)
+                            <p class="mb-0">{{ $error }}</p>
+                        @endforeach
+                    </div>
+                @endif
                 <div style="padding:20px 28px; border-bottom:1px solid #e2e8f0; ">
 
                     <form action="{{ route('workshops.index') }}" method="GET" class="row g-3 align-items-end">

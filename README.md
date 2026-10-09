@@ -1,59 +1,66 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Workshop Registration Service
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel 12 application for a community training centre. Admins create staff accounts; Managers schedule workshops; Managers and Staff register or cancel attendees and inspect history. Public signup is disabled.
 
-## About Laravel
+## Requirements
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2 or newer, Composer 2, and PHP extensions required by Laravel (including PDO SQLite for the default setup).
+- Node.js 20.19+ or 22.12+ and npm for building frontend assets.
+- SQLite is the default database. MySQL with InnoDB is also supported by the application's transaction strategy; concurrency tests currently cover SQLite.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Local setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+From the repository root:
 
-## Learning Laravel
+```sh
+composer install
+php -r "file_exists('.env') || copy('.env.example', '.env');"
+php artisan key:generate
+php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
+php artisan migrate --seed
+npm install
+npm run build
+php artisan serve
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Open http://127.0.0.1:8000 and choose Log in. The backend serves the Blade frontend, so only the Laravel server is needed after building assets. For frontend development, run `npm run dev` in a second terminal while `php artisan serve` runs.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+The default `.env.example` uses `DB_CONNECTION=sqlite`. Leave `DB_DATABASE` unset to use `database/database.sqlite`. Set `APP_URL=http://127.0.0.1:8000` locally. Datetimes use Laravel's configured timezone (UTC by default); enter and interpret workshop times in that timezone. Password-reset emails use the log mailer locally and appear in `storage/logs/laravel.log`.
 
-## Laravel Sponsors
+## Demo login and data
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Development-only seeded Admin:
 
-### Premium Partners
+- Email: `admin@workshop.com`
+- Password: `Admin@12345`
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Never use these credentials in production. The Admin dashboard links to User Management. Create a Manager and a Staff account there, then log out and log in with those credentials to access workshops. Admins intentionally cannot view workshops or register attendees, matching the challenge's permission matrix.
 
-## Contributing
+The seed command creates three future sample workshops, at three locations. Sample workshops are preserved when seeding again. The Admin seeder resets the development Admin password when rerun; use it only for local/demo setup.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Try the workflows
 
-## Code of Conduct
+1. As Admin, create Manager and Staff accounts.
+2. As Manager, browse, add, or edit workshops. Filter by inclusive start/end dates, status, and available seats.
+3. As Staff or Manager, open a future scheduled workshop and register an attendee by name and email.
+4. Cancel a registration from its history table. The seat becomes available and the cancelled record retains both actors and timestamps.
+5. Attempt to register into a full workshop, or reduce capacity below active bookings. The backend refuses the operation.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The available-seats filter means `capacity > active registrations`; combine it with Scheduled and an appropriate date range to find upcoming workshops accepting bookings. Past, completed, or cancelled workshops never accept registrations.
 
-## Security Vulnerabilities
+## Verification
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```sh
+php artisan test
+npm run build
+```
 
-## License
+Tests use an isolated in-memory SQLite database. The concurrency test uses a temporary SQLite file and four independent PHP processes synchronized before booking the last seat. It requires `proc_open` to be enabled. It cleans up its temporary database and barrier files and does not modify the local application database.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Tests cover the permission matrix, disabled public signup, Admin-created accounts, capacity edits, full/closed workshops, cancellation/history, filter combinations, repeatable seeding, and simultaneous bookings.
+
+## Backend and frontend design
+
+Laravel web endpoints supply the server-rendered frontend using session authentication, CSRF protection, backend role middleware, validation, and redirects. This implementation has no separate JSON API or SPA. See [DESIGN.md](DESIGN.md) for rationale, concurrency guarantees, assumptions, and skipped work. If a separately consumable API is required by the reviewer, authenticated JSON endpoints remain an additional deliverable.
+
+Waitlists, a general audit trail, and live deployment are optional and not implemented.

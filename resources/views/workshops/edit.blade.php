@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="fw-bold m-0">Create Workshop</h2>
+        <h2 class="fw-bold m-0">Edit Workshop</h2>
     </x-slot>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">

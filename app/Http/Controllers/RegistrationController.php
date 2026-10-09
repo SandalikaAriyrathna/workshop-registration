@@ -58,10 +58,7 @@ class RegistrationController extends Controller
         DB::transaction(function () use ($validated) {
 
             // Lock the workshop row until this transaction finishes
-            $workshop = Workshop::where(
-                'id',
-                $validated['workshop_id']
-            )->lockForUpdate()->firstOrFail();
+            $workshop = Workshop::lockForCapacity((int) $validated['workshop_id']);
 
             // Only scheduled future workshops accept registrations
             if (
@@ -105,9 +102,7 @@ class RegistrationController extends Controller
     {
         DB::transaction(function () use ($registration) {
 
-            $workshop = Workshop::whereKey($registration->workshop_id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            Workshop::lockForCapacity($registration->workshop_id);
 
             $registration = Registration::whereKey($registration->id)
                 ->lockForUpdate()

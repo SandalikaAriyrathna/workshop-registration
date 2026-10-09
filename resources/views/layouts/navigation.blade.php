@@ -15,6 +15,11 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    @if (auth()->user()->role === 'admin')
+                        <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">User Management</x-nav-link>
+                    @else
+                        <x-nav-link :href="route('workshops.index')" :active="request()->routeIs('workshops.*', 'registrations.*')">Workshops</x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -70,6 +75,11 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            @if (auth()->user()->role === 'admin')
+                <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">User Management</x-responsive-nav-link>
+            @else
+                <x-responsive-nav-link :href="route('workshops.index')" :active="request()->routeIs('workshops.*', 'registrations.*')">Workshops</x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

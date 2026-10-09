@@ -3,9 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Workshop extends Model
 {
+    /** Call inside a transaction before reading capacity or active bookings. */
+    public static function lockForCapacity(int $id): self
+    {
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            // SQLite ignores FOR UPDATE. Acquire its writer lock before reading.
+            DB::table('workshops')->where('id', $id)->update(['id' => DB::raw('id')]);
+        }
+
+        return static::whereKey($id)->lockForUpdate()->firstOrFail();
+    }
+
     protected $fillable = [
         'code',
         'title',
