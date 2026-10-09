@@ -1,4 +1,3 @@
-
 <x-app-layout>
     <x-slot name="header">
         <h2 style="color:#1e293b; font-size:22px; font-weight:700; margin:0;">
@@ -6,8 +5,7 @@
         </h2>
     </x-slot>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
         .workshops-page {
@@ -26,7 +24,7 @@
             background: #ffffff;
             border: 1px solid #e2e8f0;
             border-radius: 14px;
-            box-shadow: 0 4px 20px rgba(0,0,0,.04);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .04);
             overflow: hidden;
         }
 
@@ -134,13 +132,84 @@
                         </p>
                     </div>
 
-                    @if(auth()->user()->role === 'manager')
-                        <a href="{{ route('workshops.create') }}"
-                           class="btn btn-primary px-4 py-2">
+                    @if (auth()->user()->role === 'manager')
+                        <a href="{{ route('workshops.create') }}" class="btn btn-primary px-4 py-2">
                             + Add Workshop
                         </a>
                     @endif
                 </div>
+
+
+                <!-- Workshop Filters -->
+                <div style="padding:20px 28px; border-bottom:1px solid #e2e8f0; ">
+
+                    <form action="{{ route('workshops.index') }}" method="GET" class="row g-3 align-items-end">
+
+                        <!-- From Date -->
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">
+                                From Date
+                            </label>
+                            <input type="date" name="date_from" value="{{ request('date_from') }}"
+                                class="form-control">
+                        </div>
+
+                        <!-- To Date -->
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">
+                                To Date
+                            </label>
+                            <input type="date" name="date_to" value="{{ request('date_to') }}" class="form-control">
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">
+                                Status
+                            </label>
+                            <select name="status" class="form-select">
+                                <option value="">All Statuses</option>
+
+                                <option value="scheduled" @selected(request('status') === 'scheduled')>
+                                    Scheduled
+                                </option>
+
+                                <option value="completed" @selected(request('status') === 'completed')>
+                                    Completed
+                                </option>
+
+                                <option value="cancelled" @selected(request('status') === 'cancelled')>
+                                    Cancelled
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Available Seats -->
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input type="checkbox" name="available_only" value="1" id="available_only"
+                                    class="form-check-input" @checked(request('available_only') == '1')>
+
+                                <label for="available_only" class="form-check-label fw-semibold">
+                                    Available Seats Only
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="col-12 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4">
+                                Apply Filters
+                            </button>
+
+                            <a href="{{ route('workshops.index') }}" class="btn btn-outline-secondary px-4">
+                                Reset
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+
 
                 <!-- Table -->
                 <div class="workshops-card-body">
@@ -154,7 +223,7 @@
                                     <th>Workshop</th>
                                     <th>Instructor</th>
                                     <th>Date & Time</th>
-                                    <th>Capacity</th>
+                                    <th>Seats</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>
@@ -185,11 +254,24 @@
                                         </td>
 
                                         <td>
-                                            {{ $workshop->capacity }} seats
+                                            @php
+                                                $available = max(
+                                                    0,
+                                                    $workshop->capacity - $workshop->active_registrations_count,
+                                                );
+                                            @endphp
+
+                                            <span style="font-weight:600;">
+                                                {{ $available }} / {{ $workshop->capacity }}
+                                            </span>
+
+                                            <div style="font-size:12px; color:#64748b;">
+                                                Available / Total
+                                            </div>
                                         </td>
 
                                         <td>
-                                            @if($workshop->status === 'scheduled')
+                                            @if ($workshop->status === 'scheduled')
                                                 <span class="badge bg-primary-subtle text-primary-emphasis px-3 py-2">
                                                     Scheduled
                                                 </span>
@@ -207,13 +289,13 @@
                                         <td>
                                             <div class="workshops-action-group">
                                                 <a href="{{ route('workshops.show', $workshop) }}"
-                                                   class="btn btn-sm btn-outline-primary">
+                                                    class="btn btn-sm btn-outline-primary">
                                                     View
                                                 </a>
 
-                                                @if(auth()->user()->role === 'manager')
+                                                @if (auth()->user()->role === 'manager')
                                                     <a href="{{ route('workshops.edit', $workshop) }}"
-                                                       class="btn btn-sm btn-outline-secondary">
+                                                        class="btn btn-sm btn-outline-secondary">
                                                         Edit
                                                     </a>
                                                 @endif
@@ -224,7 +306,7 @@
                                     <tr>
                                         <td colspan="7" class="workshops-empty">
                                             No workshops found.
-                                            @if(auth()->user()->role === 'manager')
+                                            @if (auth()->user()->role === 'manager')
                                                 <div class="mt-2">
                                                     Create your first workshop to get started.
                                                 </div>

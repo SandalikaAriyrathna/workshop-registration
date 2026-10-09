@@ -11,9 +11,52 @@ class WorkshopController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $workshops = Workshop::orderBy('starts_at', 'asc')->get();
+        $query = Workshop::query()
+            ->withCount('activeRegistrations');
+
+        // Filter by start date
+        if ($request->filled('date_from')) {
+            $query->whereDate(
+                'starts_at',
+                '>=',
+                $request->date_from
+            );
+        }
+
+        // Filter by end date
+        if ($request->filled('date_to')) {
+            $query->whereDate(
+                'starts_at',
+                '<=',
+                $request->date_to
+            );
+        }
+
+        // Filter by workshop status
+        if ($request->filled('status')) {
+            $query->where(
+                'status',
+                $request->status
+            );
+        }
+
+        // Filter workshops with available seats
+        if ($request->boolean('available_only')) {
+            $query->whereRaw(
+                "capacity > (
+                    SELECT COUNT(*)
+                    FROM registrations
+                    WHERE registrations.workshop_id = workshops.id
+                    AND registrations.status = 'active'
+                )"
+            );
+        }
+
+        $workshops = $query
+            ->orderBy('starts_at')
+            ->get();
 
         return view('workshops.index', compact('workshops'));
     }
